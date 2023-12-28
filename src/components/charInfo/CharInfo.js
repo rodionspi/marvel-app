@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { NavLink } from 'react-router-dom';
 
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Skeleton from '../skeleton/Skeleton';
 
 import './charInfo.scss';
-import useMarvelService from '../../services/MarvelService';
 
 const CharInfo = (props) => {
 
@@ -17,10 +16,10 @@ const CharInfo = (props) => {
 
     useEffect(() => {
         updateChar()
-    }, [props.charId]);
+    }, [props.charId])
 
     const updateChar = () => {
-        const {charId} = props; 
+        const {charId} = props;
         if (!charId) {
             return;
         }
@@ -51,16 +50,11 @@ const CharInfo = (props) => {
 
 const View = ({char}) => {
     const {name, description, thumbnail, homepage, wiki, comics} = char;
-    const imgStyle = thumbnail.includes('image_not_available') ? {'objectFit' : 'contain'} : {'objectFit' : 'cover'};
-    const comicsList = comics.map((item, i) => {
-        const comicsId = item.resourceURI.split('/').at(-1);
-        return (
-            <NavLink to={`/comics/${comicsId}`} style={{display: 'block'}}>
-                <li key={i} className="char__comics-item">
-                    {item.name}
-                </li>
-            </NavLink>
-        )}).slice(0, 10);
+
+    let imgStyle = {'objectFit' : 'cover'};
+    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+        imgStyle = {'objectFit' : 'contain'};
+    }
 
     return (
         <>
@@ -83,9 +77,18 @@ const View = ({char}) => {
             </div>
             <div className="char__comics">Comics:</div>
             <ul className="char__comics-list">
+                {comics.length > 0 ? null : 'There is no comics with this character'}
                 {
-                    comics.length ? comicsList : 'No comics'
-                }
+                    comics.map((item, i) => {
+                        // eslint-disable-next-line
+                        if (i > 9) return;
+                        return (
+                            <li key={i} className="char__comics-item">
+                                {item.name}
+                            </li>
+                        )
+                    })
+                }                
             </ul>
         </>
     )

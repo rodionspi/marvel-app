@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import {CSSTransition, TransitionGroup} from 'react-transition-group';
 
-import './charList.scss';
 import useMarvelService from '../../services/MarvelService';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Spinner from '../spinner/Spinner';
+
+import './charList.scss';
 
 const CharList = (props) => {
 
@@ -25,16 +27,16 @@ const CharList = (props) => {
             .then(onCharListLoaded)
     }
 
-    const onCharListLoaded = (newCharList) => {
+    const onCharListLoaded = async (newCharList) => {
 
         let ended = false;
         if(newCharList.length < 9) {
             ended = true;
         }
 
-        setCharList(charList => [...charList, ...newCharList]);
+        setCharList([...charList, ...newCharList]);
         setNewItemLoading(false);
-        setOffset(offset => offset + 9);
+        setOffset(offset + 9);
         setCharEnded(ended);
     }
 
@@ -54,28 +56,32 @@ const CharList = (props) => {
             }
             
             return (
-                <li 
-                    tabIndex={0}
-                    ref={el => itemRefs.current[i] = el}
-                    className="char__item"
-                    key={i}
-                    onClick={() => {
-                        props.onCharSelected(item.id)
-                        focusOnItem(i)}}
-                    onKeyDown={(e) => {
-                        if (e.key === ' ' || e.key === "Enter") {
+                <CSSTransition timeout={500} key={item.id} classNames="char__item">
+                    <li 
+                        tabIndex={0}
+                        ref={el => itemRefs.current[i] = el}
+                        className="char__item"
+                        key={i}
+                        onClick={() => {
                             props.onCharSelected(item.id);
                             focusOnItem(i);
-                    }}}>
-                        <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
-                        <div className="char__name">{item.name}</div>
-                </li>
+                        }}
+                        onKeyDown={e => {
+                            if (e.key === ' ' || e.key === "Enter") {
+                                props.onCharSelected(item.id);
+                                focusOnItem(i);
+                        }}}>
+                            <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
+                            <div className="char__name">{item.name}</div>
+                    </li>
+                </CSSTransition>
             )
         });
-        // А эта конструкция вынесена для центровки спиннера/ошибки
         return (
             <ul className="char__grid">
-                {items}
+                <TransitionGroup component={null}>
+                    {items}
+                </TransitionGroup>
             </ul>
         )
     }
@@ -102,7 +108,7 @@ const CharList = (props) => {
 }
 
 CharList.propTypes = {
-    onCharSelected: PropTypes.func
+    onCharSelected: PropTypes.func.isRequired
 }
 
 export default CharList;
