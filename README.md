@@ -15,7 +15,7 @@
         <li><p style="margin-bottom: 0px">A new folder must be created in the <code>src/resources</code> directory and named <code>apiKey.js</code> This folder should contain the API key and API base.</p></li>
         <ul>
             <li style="list-style-type: circle; "><p style="font-size: 12px">API key is your own key for request</p></li>
-            <li style="list-style-type: circle; "><p style="font-size: 12px">The API base represents the fundamental root of a request, which remains unaltered as the server processes subsequent requests. To illustrate, consider the following URL: https://gateway.marvel.com:.../public/characters?limit=9&offset=210&apikey=(your Api Key );</p>
+            <li style="list-style-type: circle; "><p style="font-size: 12px">The API base represents the fundamental root of a request, which remains unaltered as the server processes subsequent requests. To illustrate, consider the following URL: "https://gateway.marvel.com:.../public/characters?limit=9&offset=210&apikey=" (your Api Key );</p>
             <p style="font-size: 12px">The offset and limit values can be specified on the <a href="https://developer.marvel.com/docs">Marvel API website</a>(Please be advised that registration is required.)</p></li>
         </ul>
     </ul>
