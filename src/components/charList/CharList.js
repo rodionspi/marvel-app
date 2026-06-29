@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
 
-import useMarvelService from '../../services/MarvelService';
+import useSuperHeroService from '../../services/SuperHeroService';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Spinner from '../spinner/Spinner';
 
@@ -12,10 +12,10 @@ const CharList = (props) => {
 
     const [charList, setCharList] = useState([]);
     const [newItemLoading, setNewItemLoading] = useState(false);
-    const [offset, setOffset] = useState(210);
+    const [offset, setOffset] = useState(1);
     const [charEnded, setCharEnded] = useState(false);
     
-    const {loading, error, getAllCharacters} = useMarvelService();
+    const {loading, error, getAllCharacters} = useSuperHeroService();
 
     useEffect(() => {
         onRequest(offset, true);

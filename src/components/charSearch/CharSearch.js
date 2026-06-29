@@ -3,14 +3,14 @@ import { Formik, Form, Field, ErrorMessage as FormikErrorMessage } from 'formik'
 import * as Yup from 'yup';
 import {Link} from 'react-router-dom';
 
-import useMarvelService from '../../services/MarvelService';
+import useSuperHeroService from '../../services/SuperHeroService';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 
 import './charSearch.scss';
 
 const CharSearch = () => {
     const [char, setChar] = useState(null);
-    const {loading, error, getCharacterByName, clearError} = useMarvelService();
+    const {loading, error, getCharacterByName, clearError} = useSuperHeroService();
 
     const onCharLoaded = (char) => {
         setChar(char);

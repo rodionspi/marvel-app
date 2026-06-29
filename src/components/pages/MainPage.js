@@ -21,8 +21,8 @@ const MainPage = () => {
             <Helmet>
                 <meta
                     name="description"
-                    content="Marvel information"/>
-                <title>Marvel information</title>
+                    content="SuperHero information"/>
+                <title>SuperHero information</title>
             </Helmet>
             <ErrorBoundary>
                 <RandomChar/>
