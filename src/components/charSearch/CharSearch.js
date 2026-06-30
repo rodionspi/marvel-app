@@ -20,7 +20,8 @@ const CharSearch = () => {
         clearError();
 
         getCharacterByName(name)
-            .then(onCharLoaded);
+            .then(onCharLoaded)
+            .catch(() => {});
     }//запрос на поиск персонажа по имени
 
     const errorMessage = error ? <div className="char__search-critical-error"><ErrorMessage /></div> : null;//вывод ошибки

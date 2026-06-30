@@ -27,6 +27,7 @@ const CharInfo = (props) => {
         clearError();
         getCharacter(charId)
             .then(onCharLoaded)
+            .catch(() => {});
     }
 
     const onCharLoaded = (char) => {

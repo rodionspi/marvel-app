@@ -24,6 +24,7 @@ const RandomChar = () => {
         clearError()
         getRandomCharacter()
             .then(onCharLoaded)
+            .catch(() => {});
     }
 
     const errorMessage = error ? <ErrorMessage/> : null;
