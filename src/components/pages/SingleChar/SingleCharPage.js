@@ -15,7 +15,7 @@ const SingleCharPage = () => {
 
     useEffect(() => {
         updateChar()
-    }, [charId]);
+    }, [charId, updateChar]);
 
     const updateChar = () => {
         clearError();

@@ -14,7 +14,7 @@ const RandomChar = () => {
 
     useEffect(() => {
         updateChar();
-    }, [])
+    }, [updateChar]);
 
     const onCharLoaded = (char) => {
         setChar(char);
