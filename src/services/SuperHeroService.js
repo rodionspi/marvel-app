@@ -92,7 +92,16 @@ const useSuperHeroService = () => {
 
 	const getRandomCharacter = async () => {
 		const id = Math.floor(Math.random() * _maxCharacterId) + 1;
-		return getCharacter(id);
+		console.log('Random character ID:', id);
+		let character = null;
+		try {
+			character = await getCharacter(id);
+		} catch (e) {
+			console.error(`Failed to fetch character with ID ${id}:`, e);
+			throwApiError(`Failed to fetch character with ID ${id}: ${e.message}`);
+		}
+		console.log('Fetched character:', character.description);
+		return character;
 	};
 
 	const normalizeValue = (value) => {

@@ -12,10 +12,6 @@ const RandomChar = () => {
 
     const {loading, error, getRandomCharacter, clearError} = useSuperHeroService();
 
-    useEffect(() => {
-        updateChar();
-    }, [updateChar]);
-
     const onCharLoaded = (char) => {
         setChar(char);
     }
@@ -28,6 +24,7 @@ const RandomChar = () => {
     }
 
     const errorMessage = error ? <ErrorMessage/> : null;
+    console.log('error', error);
     const spinner = loading ? <Spinner/> : null;
     const content = !(loading || error || !char) ? <View char={char}/> : null;
 

@@ -14,10 +14,6 @@ const CharInfo = (props) => {
 
     const {loading, error, getCharacter, clearError} = useSuperHeroService();
 
-    useEffect(() => {
-        updateChar()
-    }, [props.charId, updateChar]);
-
     const updateChar = () => {
         const {charId} = props;
         if (!charId) {

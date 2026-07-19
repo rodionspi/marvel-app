@@ -17,10 +17,6 @@ const CharList = (props) => {
     
     const {loading, error, getAllCharacters} = useSuperHeroService();
 
-    useEffect(() => {
-        onRequest(offset, true);
-    }, [offset, onRequest]);
-
     const onRequest = (offset, initial) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true);
         getAllCharacters(offset)
