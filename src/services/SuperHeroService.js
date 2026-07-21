@@ -100,7 +100,6 @@ const useSuperHeroService = () => {
 			console.error(`Failed to fetch character with ID ${id}:`, e);
 			throwApiError(`Failed to fetch character with ID ${id}: ${e.message}`);
 		}
-		console.log('Fetched character:', character.description);
 		return character;
 	};
 

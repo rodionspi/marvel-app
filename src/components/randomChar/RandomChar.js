@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import useSuperHeroService from '../../services/SuperHeroService';
@@ -24,7 +24,6 @@ const RandomChar = () => {
     }
 
     const errorMessage = error ? <ErrorMessage/> : null;
-    console.log('error', error);
     const spinner = loading ? <Spinner/> : null;
     const content = !(loading || error || !char) ? <View char={char}/> : null;
 

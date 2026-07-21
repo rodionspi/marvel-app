@@ -13,10 +13,6 @@ const SingleCharPage = () => {
     const [char, setChar] = useState(null);
     const {loading, error, getCharacter, clearError} = useSuperHeroService();
 
-    useEffect(() => {
-        updateChar()
-    }, [charId, updateChar]);
-
     const updateChar = () => {
         clearError();
         getCharacter(charId)
@@ -44,6 +40,8 @@ const SingleCharPage = () => {
 
 const View = ({char}) => {
     const {name, fullDescription, thumbnail, details} = char;
+    
+    console.log(char);
 
     return (
         <div className="single-char">
