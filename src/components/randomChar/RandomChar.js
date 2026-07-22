@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import useSuperHeroService from '../../services/SuperHeroService';
@@ -12,16 +12,16 @@ const RandomChar = () => {
 
     const {loading, error, getRandomCharacter, clearError} = useSuperHeroService();
 
-    const onCharLoaded = (char) => {
-        setChar(char);
-    }
-
-    const updateChar = () => {
-        clearError()
+    const updateChar = useCallback(() => {
+        clearError();
         getRandomCharacter()
-            .then(onCharLoaded)
+            .then(setChar)
             .catch(() => {});
-    }
+    }, [clearError, getRandomCharacter]);
+
+    useEffect(() => {
+        updateChar();
+    }, [updateChar]);
 
     const errorMessage = error ? <ErrorMessage/> : null;
     const spinner = loading ? <Spinner/> : null;

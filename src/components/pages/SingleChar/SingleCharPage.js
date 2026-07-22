@@ -13,6 +13,10 @@ const SingleCharPage = () => {
     const [char, setChar] = useState(null);
     const {loading, error, getCharacter, clearError} = useSuperHeroService();
 
+    useEffect(() => {
+        updateChar();
+    }, [charId]);
+
     const updateChar = () => {
         clearError();
         getCharacter(charId)

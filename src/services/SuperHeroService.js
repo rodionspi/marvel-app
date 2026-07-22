@@ -1,14 +1,11 @@
 import { useHttp } from "../hooks/http.hook";
-import {_apiKey, _apiBase} from "../resources/apiKey";
+import { buildImageProxyUrl } from "./imageProxy";
 
 const useSuperHeroService = () => {
 	const { loading, request, error, clearError, setError } = useHttp();
 	const _baseOffset = 1;
 	const _pageLimit = 9;
 	const _maxCharacterId = 731;
-	const _tokenPlaceholder = "YOUR_SUPERHERO_API_TOKEN";
-
-	const hasToken = () => _apiKey && _apiKey !== _tokenPlaceholder;
 
 	const throwApiError = (message) => {
 		setError(message);
@@ -16,13 +13,7 @@ const useSuperHeroService = () => {
 	};
 
 	const getResource = async (endpoint) => {
-		if (!hasToken()) {
-			throwApiError(
-				"Add your SuperHero API token to REACT_APP_SUPERHERO_API_TOKEN or src/resources/apiKey.js"
-			);
-		}
-
-		const res = await request(`${_apiBase}${_apiKey}${endpoint}`);
+		const res = await request(`/api/superhero${endpoint}`);
 
 		if (res.response === "error") {
 			throwApiError(res.error || "SuperHero API request failed");
@@ -32,12 +23,6 @@ const useSuperHeroService = () => {
 	};
 
 	const getAllCharacters = async (offset = _baseOffset) => {
-		if (!hasToken()) {
-			throwApiError(
-				"Add your SuperHero API token to REACT_APP_SUPERHERO_API_TOKEN or src/resources/apiKey.js"
-			);
-		}
-
 		let lastError = null;
 		const ids = Array.from({ length: _pageLimit }, (_, i) => offset + i)
 			.filter(id => id <= _maxCharacterId);
@@ -64,15 +49,7 @@ const useSuperHeroService = () => {
 	};
 
 	const getCharacterByName = async (name) => {
-		if (!hasToken()) {
-			throwApiError(
-				"Add your SuperHero API token to REACT_APP_SUPERHERO_API_TOKEN or src/resources/apiKey.js"
-			);
-		}
-
-		const res = await request(
-			`${_apiBase}${_apiKey}/search/${encodeURIComponent(name.trim())}`
-		);
+		const res = await request(`/api/superhero/search/${encodeURIComponent(name.trim())}`);
 
 		if (res.response === "error") {
 			const apiError = res.error || "";
@@ -92,12 +69,10 @@ const useSuperHeroService = () => {
 
 	const getRandomCharacter = async () => {
 		const id = Math.floor(Math.random() * _maxCharacterId) + 1;
-		console.log('Random character ID:', id);
 		let character = null;
 		try {
 			character = await getCharacter(id);
 		} catch (e) {
-			console.error(`Failed to fetch character with ID ${id}:`, e);
 			throwApiError(`Failed to fetch character with ID ${id}: ${e.message}`);
 		}
 		return character;
@@ -168,13 +143,16 @@ const useSuperHeroService = () => {
 	const _transformCharacter = (char) => {
 		const fullDescription = createDescription(char);
 		const superheroDbSearch = `https://www.superherodb.com/search/${encodeURIComponent(char.name)}`;
-
+		const imageUrl = buildImageProxyUrl(char.image?.url || char.url);
+		console.log(`Transformed character: ${char.name}, Image URL: ${imageUrl}`);
+		
 		return {
 			id: Number(char.id),
 			name: char.name,
 			description: trimText(fullDescription),
 			fullDescription: fullDescription || "There is no biography information for this character",
-			thumbnail: char.image?.url || "https://placehold.co/300x300?text=No+Image",
+			// SuperHero API may expose the direct image URL as image.url or url.
+			thumbnail: imageUrl || "https://placehold.co/300x300?text=No+Image",
 			homepage: "https://superheroapi.com/",
 			wiki: superheroDbSearch,
 			details: createDetails(char),
