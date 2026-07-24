@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import {CSSTransition, TransitionGroup} from 'react-transition-group';
 
 import useSuperHeroService from '../../services/SuperHeroService';
 import ErrorMessage from '../errorMessage/ErrorMessage';
@@ -14,32 +13,46 @@ const CharList = (props) => {
     const [newItemLoading, setNewItemLoading] = useState(false);
     const [offset, setOffset] = useState(1);
     const [charEnded, setCharEnded] = useState(false);
+    const requestedOffsets = useRef(new Set());
     
     const {loading, error, getAllCharacters} = useSuperHeroService();
 
-    useEffect(() => {
-        onRequest(offset, true);
-    }, [offset, onRequest]);
-
-    const onRequest = (offset, initial) => {
-        initial ? setNewItemLoading(false) : setNewItemLoading(true);
-        getAllCharacters(offset)
-            .then(onCharListLoaded)
-            .catch(() => setNewItemLoading(false));
-    }
-
-    const onCharListLoaded = async (newCharList) => {
+    const onCharListLoaded = useCallback((newCharList, currentOffset) => {
 
         let ended = false;
         if(newCharList.length < 9) {
             ended = true;
         }
 
-        setCharList([...charList, ...newCharList]);
+        setCharList(charList => {
+            const loadedIds = new Set(charList.map(char => char.id));
+            const uniqueCharacters = newCharList.filter(char => !loadedIds.has(char.id));
+
+            return [...charList, ...uniqueCharacters];
+        });
         setNewItemLoading(false);
-        setOffset(offset + 9);
+        setOffset(currentOffset + 9);
         setCharEnded(ended);
-    }
+    }, []);
+
+    const onRequest = useCallback((currentOffset, initial) => {
+        if (requestedOffsets.current.has(currentOffset)) {
+            return;
+        }
+
+        requestedOffsets.current.add(currentOffset);
+        initial ? setNewItemLoading(false) : setNewItemLoading(true);
+        getAllCharacters(currentOffset)
+            .then(newCharList => onCharListLoaded(newCharList, currentOffset))
+            .catch(() => {
+                requestedOffsets.current.delete(currentOffset);
+                setNewItemLoading(false);
+            });
+    }, [getAllCharacters, onCharListLoaded]);
+
+    useEffect(() => {
+        onRequest(1, true);
+    }, [onRequest]);
 
     const itemRefs = useRef([]);
 
@@ -57,32 +70,28 @@ const CharList = (props) => {
             }
             
             return (
-                <CSSTransition timeout={500} key={item.id} classNames="char__item">
-                    <li 
-                        tabIndex={0}
-                        ref={el => itemRefs.current[i] = el}
-                        className="char__item"
-                        key={i}
-                        onClick={() => {
+                <li 
+                    tabIndex={0}
+                    ref={el => itemRefs.current[i] = el}
+                    className="char__item"
+                    key={item.id}
+                    onClick={() => {
+                        props.onCharSelected(item.id);
+                        focusOnItem(i);
+                    }}
+                    onKeyDown={e => {
+                        if (e.key === ' ' || e.key === "Enter") {
                             props.onCharSelected(item.id);
                             focusOnItem(i);
-                        }}
-                        onKeyDown={e => {
-                            if (e.key === ' ' || e.key === "Enter") {
-                                props.onCharSelected(item.id);
-                                focusOnItem(i);
-                        }}}>
-                            <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
-                            <div className="char__name">{item.name}</div>
-                    </li>
-                </CSSTransition>
+                    }}}>
+                        <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
+                        <div className="char__name">{item.name}</div>
+                </li>
             )
         });
         return (
             <ul className="char__grid">
-                <TransitionGroup component={null}>
-                    {items}
-                </TransitionGroup>
+                {items}
             </ul>
         )
     }
