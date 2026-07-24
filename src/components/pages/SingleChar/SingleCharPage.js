@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 import Spinner from '../../spinner/Spinner';
 import ErrorMessage from '../../errorMessage/ErrorMessage';
@@ -14,19 +14,11 @@ const SingleCharPage = () => {
     const {loading, error, getCharacter, clearError} = useSuperHeroService();
 
     useEffect(() => {
-        updateChar();
-    }, [charId]);
-
-    const updateChar = () => {
         clearError();
         getCharacter(charId)
-            .then(onCharLoaded)
+            .then(setChar)
             .catch(() => {});
-    }
-
-    const onCharLoaded = (char) => {
-        setChar(char);
-    }
+    }, [charId, clearError, getCharacter]);
 
     const errorMessage = error ? <ErrorMessage/> : null;
     const spinner = loading ? <Spinner/> : null;
@@ -44,8 +36,6 @@ const SingleCharPage = () => {
 
 const View = ({char}) => {
     const {name, fullDescription, thumbnail, details} = char;
-    
-    console.log(char);
 
     return (
         <div className="single-char">

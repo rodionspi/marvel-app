@@ -11,24 +11,20 @@ import './charInfo.scss';
 const CharInfo = (props) => {
 
     const [char, setChar] = useState(null);
+    const {charId} = props;
 
     const {loading, error, getCharacter, clearError} = useSuperHeroService();
 
-    const updateChar = () => {
-        const {charId} = props;
+    useEffect(() => {
         if (!charId) {
             return;
         }
 
         clearError();
         getCharacter(charId)
-            .then(onCharLoaded)
+            .then(setChar)
             .catch(() => {});
-    }
-
-    const onCharLoaded = (char) => {
-        setChar(char);
-    }
+    }, [charId, clearError, getCharacter]);
 
     const skeleton = char || loading || error ? null : <Skeleton/>;
     const errorMessage = error ? <ErrorMessage/> : null;

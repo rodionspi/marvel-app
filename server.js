@@ -100,7 +100,7 @@ const fetchImage = async (url) => {
 
 const fetchSuperHeroApi = async (endpoint) => {
   // This is the upstream JSON API URL from SuperHeroAPI, not a browser URL.
-  const upstreamUrl = `https://superheroapi.com/api.php/${superheroApiKey}${endpoint}`;
+  const upstreamUrl = `https://superheroapi.com/api/${superheroApiKey}${endpoint}`;
   const upstream = await fetch(upstreamUrl, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (compatible; SuperHeroApiProxy/1.0)',
