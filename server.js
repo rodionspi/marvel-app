@@ -69,14 +69,17 @@ const storeCachedImage = (url, payload) => {
 const fetchImage = async (url) => {
   const upstream = await fetch(url, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; SuperHeroImageProxy/1.0)',
-      Referer: 'https://www.superherodb.com/',
-      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-    },
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Referer': 'https://www.superherodb.com/',
+      'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
+    }
   });
 
   if (!upstream.ok) {
-    throw new Error(`Upstream request failed with status ${upstream.status}`);
+    console.log('Внешний сайт ответил:', upstream.status, upstream.statusText);
+    const body = await upstream.text().catch(() => '');
+    console.log('Тело ответа:', body.slice(0, 300));
+    return res.status(502).json({ error: `Upstream responded ${upstream.status}` });
   }
 
   const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
@@ -102,7 +105,7 @@ const fetchSuperHeroApi = async (endpoint) => {
   // This is the upstream JSON API URL from SuperHeroAPI, not a browser URL.
   const upstreamUrl = `https://superheroapi.com/api/${superheroApiKey}${endpoint}`;
   const upstream = await fetch(upstreamUrl, {
-    headers: {
+      headers: {
       'User-Agent': 'Mozilla/5.0 (compatible; SuperHeroApiProxy/1.0)',
       Referer: 'https://www.superherodb.com/',
       Accept: 'application/json',
