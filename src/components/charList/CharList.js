@@ -65,7 +65,7 @@ const CharList = (props) => {
     function renderItems(arr) {
         const items =  arr.map((item, i) => {
             let imgStyle = {'objectFit' : 'cover'};
-            if (item.thumbnail.includes('image_not_available.jpg')) {
+            if (item.thumbnail.includes('placehold.co')) {
                 imgStyle = {'objectFit' : 'unset'};
             }
             

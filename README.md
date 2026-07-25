@@ -1,6 +1,6 @@
 # SuperHero App
 
-React app with character cards, search, random character selection, and single character pages powered by [SuperHero API](https://superheroapi.com/).
+React app with character cards, search, random character selection, and single character pages powered by the open [akabab superhero API](https://akabab.github.io/superhero-api/).
 
 ## Setup
 
@@ -10,13 +10,7 @@ Install dependencies:
 npm install
 ```
 
-Create a SuperHero API access token on https://superheroapi.com/ and provide it as an environment variable:
-
-```bash
-REACT_APP_SUPERHERO_API_TOKEN=your_token_here
-```
-
-For local development you can put the same value in a `.env` file in the project root. The app also falls back to `src/resources/apiKey.js`, where the placeholder can be replaced manually.
+No API token is required. The Express server loads `https://akabab.github.io/superhero-api/api/all.json`, caches the full hero list in memory, and serves local `/api/superhero/:id` and `/api/superhero/search/:name` endpoints for the React app.
 
 ## Available Scripts
 
@@ -26,7 +20,7 @@ Run the full development stack:
 npm run dev
 ```
 
-This starts the React app and the Express image proxy server on port `5001`.
+This starts the React app and the Express hero API server on port `5001`.
 
 Run only the React development server:
 
@@ -34,7 +28,7 @@ Run only the React development server:
 npm start
 ```
 
-Run only the proxy server:
+Run only the hero API server:
 
 ```bash
 npm run server
@@ -54,6 +48,6 @@ npm test
 
 ## API Notes
 
-SuperHero API supports character lookup by id and search by name. It does not provide Marvel-style comics endpoints, so the old comics section was removed and legacy `/comics` routes now redirect to the character list.
+The akabab superhero API provides a static list of 731 characters. The local Express server caches that list and supports lookup by akabab ID plus partial, case-insensitive name search. It does not provide Marvel-style comics endpoints, so the old comics section was removed and legacy `/comics` routes now redirect to the character list.
 
-Image assets from SuperHeroDB are proxied through `/api/image-proxy?url=...` to avoid browser blocking caused by cross-origin restrictions on direct image loads.
+Image assets are loaded directly from jsDelivr CDN URLs in each character's `images.md` field by default. No image proxy is required.

@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useHttp } from "../hooks/http.hook";
-import { buildImageProxyUrl } from "./imageProxy";
-import { _apiBase, _apiKey } from "../resources/apiKey";
+import { _apiBase } from "../resources/apiKey";
 
 const _baseOffset = 1;
 const _pageLimit = 9;
@@ -36,11 +35,11 @@ const createDetails = (char) => {
 	const powerstats = char.powerstats || {};
 
 	const bioDetails = [
-		["Full name", biography["full-name"]],
+		["Full name", biography.fullName],
 		["Publisher", biography.publisher],
 		["Alignment", biography.alignment],
-		["First appearance", biography["first-appearance"]],
-		["Place of birth", biography["place-of-birth"]],
+		["First appearance", biography.firstAppearance],
+		["Place of birth", biography.placeOfBirth],
 		["Race", appearance.race],
 		["Height", appearance.height],
 		["Weight", appearance.weight],
@@ -58,8 +57,8 @@ const createDetails = (char) => {
 
 const createDescription = (char) => {
 	const biography = char.biography || {};
-	const fullName = normalizeValue(biography["full-name"]);
-	const firstAppearance = normalizeValue(biography["first-appearance"]);
+	const fullName = normalizeValue(biography.fullName);
+	const firstAppearance = normalizeValue(biography.firstAppearance);
 	const publisher = normalizeValue(biography.publisher);
 
 	return [
@@ -79,27 +78,27 @@ const useSuperHeroService = () => {
 
 	const _transformCharacter = useCallback((char) => {
 		const fullDescription = createDescription(char);
-		const superheroDbSearch = `https://www.superherodb.com/search/${encodeURIComponent(char.name)}`;
-		const imageUrl = buildImageProxyUrl(char.image?.url || char.url);
+		const imageUrl = char.images?.md || char.images?.lg || char.images?.sm || char.images?.xs;
 		
 		return {
 			id: Number(char.id),
 			name: char.name,
 			description: trimText(fullDescription),
 			fullDescription: fullDescription || "There is no biography information for this character",
-			// SuperHero API may expose the direct image URL as image.url or url.
 			thumbnail: imageUrl || "https://placehold.co/300x300?text=No+Image",
-			homepage: "https://superheroapi.com/",
-			wiki: superheroDbSearch,
+			homepage: "https://akabab.github.io/superhero-api/api/",
+			wiki: `https://akabab.github.io/superhero-api/api/id/${char.id}.json`,
 			details: createDetails(char),
 		};
 	}, []);
 
 	const getResource = useCallback(async (endpoint) => {
-		const res = await request(`${_apiBase}${_apiKey}${endpoint}`);
+		console.log(`Fetching resource from endpoint: ${endpoint}`);
+		console.log(`Full URL: ${_apiBase}${endpoint}`);
+		const res = await request(`${_apiBase}${endpoint}`);
 
 		if (res.response === "error") {
-			throwApiError(res.error || "SuperHero API request failed");
+			throwApiError(res.error || "Superhero API request failed");
 		}
 
 		return res;
@@ -113,7 +112,7 @@ const useSuperHeroService = () => {
 		const results = await Promise.all(
 			ids.map(async (id) => {
 				try {
-					const res = await getResource(`/${id}`);
+					const res = await getResource(`/id/${id}.json`);
 					return _transformCharacter(res);
 				} catch (e) {
 					lastError = e;
@@ -125,7 +124,7 @@ const useSuperHeroService = () => {
 		const characters = results.filter(Boolean);
 
 		if (!characters.length) {
-			throwApiError(lastError?.message || "No characters were loaded from SuperHero API");
+			throwApiError(lastError?.message || "No characters were loaded from the superhero API");
 		}
 
 		return characters;
@@ -146,7 +145,7 @@ const useSuperHeroService = () => {
 	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getCharacter = useCallback(async (id) => {
-		const res = await getResource(`/${id}`);
+		const res = await getResource(`/id/${id}.json`);
 		return _transformCharacter(res);
 	}, [_transformCharacter, getResource]);
 
