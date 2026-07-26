@@ -1,2 +1,1 @@
-export const _apiKey = process.env.REACT_APP_SUPERHERO_API_TOKEN || 'YOUR_SUPERHERO_API_TOKEN';
-export const _apiBase = 'https://superheroapi.com/api.php/';
+export const _apiBase = '/api/superhero';

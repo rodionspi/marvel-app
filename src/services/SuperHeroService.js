@@ -1,11 +1,10 @@
 import { useCallback } from "react";
 import { useHttp } from "../hooks/http.hook";
-import { buildImageProxyUrl } from "./imageProxy";
-import { _apiBase, _apiKey } from "../resources/apiKey";
+import { _apiBase } from "../resources/apiKey";
 
 const _baseOffset = 1;
-const _pageLimit = 9;
 const _maxCharacterId = 731;
+const _initialFailureLimit = 3;
 
 const normalizeValue = (value) => {
 	if (Array.isArray(value)) {
@@ -36,11 +35,11 @@ const createDetails = (char) => {
 	const powerstats = char.powerstats || {};
 
 	const bioDetails = [
-		["Full name", biography["full-name"]],
+		["Full name", biography.fullName],
 		["Publisher", biography.publisher],
 		["Alignment", biography.alignment],
-		["First appearance", biography["first-appearance"]],
-		["Place of birth", biography["place-of-birth"]],
+		["First appearance", biography.firstAppearance],
+		["Place of birth", biography.placeOfBirth],
 		["Race", appearance.race],
 		["Height", appearance.height],
 		["Weight", appearance.weight],
@@ -58,8 +57,8 @@ const createDetails = (char) => {
 
 const createDescription = (char) => {
 	const biography = char.biography || {};
-	const fullName = normalizeValue(biography["full-name"]);
-	const firstAppearance = normalizeValue(biography["first-appearance"]);
+	const fullName = normalizeValue(biography.fullName);
+	const firstAppearance = normalizeValue(biography.firstAppearance);
 	const publisher = normalizeValue(biography.publisher);
 
 	return [
@@ -79,56 +78,43 @@ const useSuperHeroService = () => {
 
 	const _transformCharacter = useCallback((char) => {
 		const fullDescription = createDescription(char);
-		const superheroDbSearch = `https://www.superherodb.com/search/${encodeURIComponent(char.name)}`;
-		const imageUrl = buildImageProxyUrl(char.image?.url || char.url);
+		const imageUrl = char.images?.md || char.images?.lg || char.images?.sm || char.images?.xs;
 		
 		return {
 			id: Number(char.id),
 			name: char.name,
 			description: trimText(fullDescription),
 			fullDescription: fullDescription || "There is no biography information for this character",
-			// SuperHero API may expose the direct image URL as image.url or url.
 			thumbnail: imageUrl || "https://placehold.co/300x300?text=No+Image",
-			homepage: "https://superheroapi.com/",
-			wiki: superheroDbSearch,
+			homepage: "https://akabab.github.io/superhero-api/api/",
+			wiki: `https://akabab.github.io/superhero-api/api/id/${char.id}.json`,
 			details: createDetails(char),
 		};
 	}, []);
 
 	const getResource = useCallback(async (endpoint) => {
-		const res = await request(`${_apiBase}${_apiKey}${endpoint}`);
+		const res = await request(`${_apiBase}${endpoint}`);
 
 		if (res.response === "error") {
-			throwApiError(res.error || "SuperHero API request failed");
+			throwApiError(res.error || "Superhero API request failed");
 		}
 
 		return res;
 	}, [request, throwApiError]);
 
 	const getAllCharacters = useCallback(async (offset = _baseOffset) => {
-		let lastError = null;
-		const ids = Array.from({ length: _pageLimit }, (_, i) => offset + i)
-			.filter(id => id <= _maxCharacterId);
-
-		const results = await Promise.all(
-			ids.map(async (id) => {
-				try {
-					const res = await getResource(`/${id}`);
-					return _transformCharacter(res);
-				} catch (e) {
-					lastError = e;
-					return null;
-				}
-			})
-		);
-
-		const characters = results.filter(Boolean);
+		const page = await getResource(`/page/${offset}`);
+		const characters = page.characters.map(_transformCharacter);
 
 		if (!characters.length) {
-			throwApiError(lastError?.message || "No characters were loaded from SuperHero API");
+			throwApiError("No characters were loaded from the superhero API");
 		}
 
-		return characters;
+		return {
+			characters,
+			nextOffset: page.nextOffset,
+			ended: page.ended,
+		};
 	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getCharacterByName = useCallback(async (name) => {
@@ -146,19 +132,35 @@ const useSuperHeroService = () => {
 	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getCharacter = useCallback(async (id) => {
-		const res = await getResource(`/${id}`);
-		return _transformCharacter(res);
-	}, [_transformCharacter, getResource]);
+		const startId = Number(id);
+		let lastError = null;
+
+		for (let shift = 0; shift < _initialFailureLimit; shift += 1) {
+			const currentId = startId + shift;
+
+			if (currentId > _maxCharacterId) {
+				break;
+			}
+
+			try {
+				const res = await getResource(`/id/${currentId}.json`);
+				return _transformCharacter(res);
+			} catch (e) {
+				lastError = e;
+			}
+		}
+
+		throwApiError(`Failed to fetch character with ID ${id}: ${lastError?.message || "unknown error"}`);
+	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getRandomCharacter = useCallback(async () => {
-		const id = Math.floor(Math.random() * _maxCharacterId) + 1;
-		let character = null;
+		const startId = Math.floor(Math.random() * _maxCharacterId) + 1;
+
 		try {
-			character = await getCharacter(id);
+			return await getCharacter(startId);
 		} catch (e) {
-			throwApiError(`Failed to fetch character with ID ${id}: ${e.message}`);
+			throwApiError(`Failed to fetch random character: ${e.message}`);
 		}
-		return character;
 	}, [getCharacter, throwApiError]);
 
 	return {
