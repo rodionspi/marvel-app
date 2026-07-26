@@ -3,8 +3,8 @@ import { useHttp } from "../hooks/http.hook";
 import { _apiBase } from "../resources/apiKey";
 
 const _baseOffset = 1;
-const _pageLimit = 9;
 const _maxCharacterId = 731;
+const _initialFailureLimit = 3;
 
 const normalizeValue = (value) => {
 	if (Array.isArray(value)) {
@@ -93,8 +93,6 @@ const useSuperHeroService = () => {
 	}, []);
 
 	const getResource = useCallback(async (endpoint) => {
-		console.log(`Fetching resource from endpoint: ${endpoint}`);
-		console.log(`Full URL: ${_apiBase}${endpoint}`);
 		const res = await request(`${_apiBase}${endpoint}`);
 
 		if (res.response === "error") {
@@ -105,29 +103,18 @@ const useSuperHeroService = () => {
 	}, [request, throwApiError]);
 
 	const getAllCharacters = useCallback(async (offset = _baseOffset) => {
-		let lastError = null;
-		const ids = Array.from({ length: _pageLimit }, (_, i) => offset + i)
-			.filter(id => id <= _maxCharacterId);
-
-		const results = await Promise.all(
-			ids.map(async (id) => {
-				try {
-					const res = await getResource(`/id/${id}.json`);
-					return _transformCharacter(res);
-				} catch (e) {
-					lastError = e;
-					return null;
-				}
-			})
-		);
-
-		const characters = results.filter(Boolean);
+		const page = await getResource(`/page/${offset}`);
+		const characters = page.characters.map(_transformCharacter);
 
 		if (!characters.length) {
-			throwApiError(lastError?.message || "No characters were loaded from the superhero API");
+			throwApiError("No characters were loaded from the superhero API");
 		}
 
-		return characters;
+		return {
+			characters,
+			nextOffset: page.nextOffset,
+			ended: page.ended,
+		};
 	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getCharacterByName = useCallback(async (name) => {
@@ -145,19 +132,35 @@ const useSuperHeroService = () => {
 	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getCharacter = useCallback(async (id) => {
-		const res = await getResource(`/id/${id}.json`);
-		return _transformCharacter(res);
-	}, [_transformCharacter, getResource]);
+		const startId = Number(id);
+		let lastError = null;
+
+		for (let shift = 0; shift < _initialFailureLimit; shift += 1) {
+			const currentId = startId + shift;
+
+			if (currentId > _maxCharacterId) {
+				break;
+			}
+
+			try {
+				const res = await getResource(`/id/${currentId}.json`);
+				return _transformCharacter(res);
+			} catch (e) {
+				lastError = e;
+			}
+		}
+
+		throwApiError(`Failed to fetch character with ID ${id}: ${lastError?.message || "unknown error"}`);
+	}, [_transformCharacter, getResource, throwApiError]);
 
 	const getRandomCharacter = useCallback(async () => {
-		const id = Math.floor(Math.random() * _maxCharacterId) + 1;
-		let character = null;
+		const startId = Math.floor(Math.random() * _maxCharacterId) + 1;
+
 		try {
-			character = await getCharacter(id);
+			return await getCharacter(startId);
 		} catch (e) {
-			throwApiError(`Failed to fetch character with ID ${id}: ${e.message}`);
+			throwApiError(`Failed to fetch random character: ${e.message}`);
 		}
-		return character;
 	}, [getCharacter, throwApiError]);
 
 	return {

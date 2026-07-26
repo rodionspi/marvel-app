@@ -17,12 +17,11 @@ const CharList = (props) => {
     
     const {loading, error, getAllCharacters} = useSuperHeroService();
 
-    const onCharListLoaded = useCallback((newCharList, currentOffset) => {
+    const onCharListLoaded = useCallback((payload, currentOffset) => {
+        const newCharList = Array.isArray(payload) ? payload : payload.characters;
+        const nextOffset = Array.isArray(payload) ? currentOffset + 9 : payload.nextOffset;
 
-        let ended = false;
-        if(newCharList.length < 9) {
-            ended = true;
-        }
+        const ended = Array.isArray(payload) ? newCharList.length < 9 : payload.ended;
 
         setCharList(charList => {
             const loadedIds = new Set(charList.map(char => char.id));
@@ -31,7 +30,7 @@ const CharList = (props) => {
             return [...charList, ...uniqueCharacters];
         });
         setNewItemLoading(false);
-        setOffset(currentOffset + 9);
+        setOffset(nextOffset);
         setCharEnded(ended);
     }, []);
 
