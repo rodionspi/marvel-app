@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Helmet } from "react-helmet";
+import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 import RandomChar from "../randomChar/RandomChar";
 import CharList from "../charList/CharList";
@@ -11,9 +12,11 @@ import decoration from '../../resources/img/vision.png';
 
 const MainPage = () => {
     const [selectedChar, setChar] = useState(null)
+    const navigate = useNavigate();
 
     const onCharSelected = (id) => {
         setChar(id);
+        navigate(`/characters/${id}`);
     };
 
     return (
