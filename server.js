@@ -3,7 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
-const { fetchAllHeroes, findHeroById, findHeroesPage, findHeroByName } = require('./heroApi');
+const { fetchAllHeroes, findHeroById, findHeroesPage, findHeroByName } = require('./api/superhero/[id]');
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -14,16 +14,11 @@ const isValidSuperHeroApiPath = (value) => {
     return false;
   }
 
-  return /^\/(\d+|id\/\d+\.json|page\/\d+|search\/[^/?#]+)$/.test(value);
+  return /^\/(\d+|id\/\d+\.json|search\/[^/?#]+)$/.test(value);
 };
 
 const getHeroIdFromEndpoint = (endpoint) => {
   const match = endpoint.match(/^\/(?:id\/)?(\d+)(?:\.json)?$/);
-  return match ? match[1] : null;
-};
-
-const getPageOffsetFromEndpoint = (endpoint) => {
-  const match = endpoint.match(/^\/page\/(\d+)$/);
   return match ? match[1] : null;
 };
 
@@ -46,13 +41,6 @@ app.get('/api/superhero/*', async (req, res) => {
   }
 
   try {
-    const pageOffset = getPageOffsetFromEndpoint(endpoint);
-
-    if (pageOffset) {
-      const page = await findHeroesPage({ offset: Number(pageOffset) });
-      return res.status(200).json(page);
-    }
-
     if (endpoint.startsWith('/search/')) {
       const query = decodeURIComponent(endpoint.replace('/search/', ''));
       const results = await findHeroByName(query);

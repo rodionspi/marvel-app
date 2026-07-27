@@ -1,22 +1,24 @@
-const ALL_HEROES_URL = 'https://akabab.github.io/superhero-api/api/all.json';
-const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const cacheTtlMs = Number(process.env.HERO_CACHE_TTL_MS) || DEFAULT_CACHE_TTL_MS;
+const ALL_HEROES_URL = 'https://akabab.github.io/superhero-api/api/all.json';//url to fetch all heroes data from the superhero API
+const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;//default cache time-to-live in milliseconds (24 hours)
+const cacheTtlMs = Number(process.env.HERO_CACHE_TTL_MS) || DEFAULT_CACHE_TTL_MS;//cache time-to-live in milliseconds, can be overridden by environment variable
 
-let heroesCache = null;
-let heroesByIdCache = null;
-let heroesPromise = null;
-let heroesCacheExpiresAt = 0;
+let heroesCache = null;//cache for all heroes data
+let heroesByIdCache = null;//cache for heroes data indexed by ID
+let heroesPromise = null;//promise for fetching all heroes data
+let heroesCacheExpiresAt = 0;//timestamp for when the cache expires
 
-const isCacheFresh = () => heroesCache && heroesCacheExpiresAt > Date.now();
+const isCacheFresh = () => heroesCache && heroesCacheExpiresAt > Date.now();//check if the cache is still fresh based on the expiration timestamp
 
 const saveHeroesCache = (heroes) => {
-  heroesCache = heroes;
-  heroesByIdCache = new Map(heroes.map((hero) => [hero.id, hero]));
-  heroesCacheExpiresAt = Date.now() + cacheTtlMs;
+  console.log('Saving heroes cache with', heroes.length, 'heroes');
+  console.log(heroes.slice(0, 3).map((hero) => hero.name).join(', '), '...');//log the first three hero names for debugging
+  heroesCache = heroes;//cache for all heroes data
+  heroesByIdCache = new Map(heroes.map((hero) => [hero.id, hero]));//cache for heroes data indexed by ID
+  heroesCacheExpiresAt = Date.now() + cacheTtlMs;//set the cache expiration timestamp based on the current time and the cache TTL
 };
 
 const fetchAllHeroes = async () => {
-  if (isCacheFresh()) {
+  if (isCacheFresh()) {//if the cache is still fresh, return the cached heroes data
     return heroesCache;
   }
 
@@ -66,8 +68,8 @@ const findHeroById = async (id) => {
     return null;
   }
 
-  await fetchAllHeroes();
-  return heroesByIdCache.get(numericId) || null;
+  await fetchAllHeroes();//fetch all heroes data and populate the cache if necessary
+  return heroesByIdCache.get(numericId) || null;//return the hero data for the given ID from the cache, or null if not found
 };
 
 const findHeroesPage = async ({
