@@ -1,9 +1,4 @@
-const {
-    fetchAllHeroes,
-    findHeroById,
-    findHeroesPage,
-    findHeroByName
-} = require('../../lib/superhero');
+const { fetchAllHeroes, findHeroById, findHeroesPage, findHeroByName } = require('../_lib/heroes');
 
 module.exports = async (req, res) => {
     const path = req.query.path;
