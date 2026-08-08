@@ -3,7 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
-const { fetchAllHeroes, findHeroById, findHeroesPage, findHeroByName } = require('./api/_lib/heroes');
+const { fetchAllHeroes, findHeroById, findHeroesPage, findHeroByName } = require('./api/superhero/[...path]');
 
 const app = express();
 const port = process.env.PORT || 5001;
